@@ -35,7 +35,7 @@ function FetchMovies() {
       <div className="grid lg:grid-cols-5 justify-center place-content-center items-center gap-3 mt-10">
         {count.map((items, index) => {
           return (
-            <NavLink to={`/detail/${items.id}`} key={index}>
+            <NavLink to={`/details/${items.id}`} key={index}>
               <Card title={items.original_title} price={items.vote_average} vote={items.vote_count} src={`https://image.tmdb.org/t/p/w500${items.poster_path}`} />
             </NavLink>
           )
