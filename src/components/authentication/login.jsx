@@ -1,26 +1,29 @@
+import { createUserWithEmailAndPassword } from 'firebase/auth'
 import React, { useState } from 'react'
+import { FIREBASE_AUTH } from '../../../firebaseconfig/config'
+
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
 
-  const data = {
-    email:email,
-    password:password
+  console.log('login data',email,password)
+  const handleData = async(e) =>{
+    console.log('click login')
+    e.preventDefault()
+    try{
+        const {user} = await  createUserWithEmailAndPassword(FIREBASE_AUTH,email,password)
+        console.log(user)
+    }catch(e){
+      console.log(e)
+    }
   }
 
-   const Handleform = (e)=>{
-    e.preventDefault();
-    console.log(data)
-    if(localStorage.setItem('userdata',JSON.stringify(email))){
-        window.location.href="/"
-    }
-   
-   }
+
   return (
     <div className="flex items-center justify-center h-screen">
       <div className="bg-white p-8 rounded shadow-md">
-        <h2 className="text-2xl text-center font-bold mb-4">Login</h2>
+        <h2 className="text-2xl text-center font-bold mb-4">Signup</h2>
         <form >
           <div className="mb-4">
             <label htmlFor="email" className="block text-gray-700 font-bold mb-2">Email</label>
@@ -48,11 +51,11 @@ function Login() {
           </div>
           <div className="text-center">
             <button
-            onClick={(e)=>{Handleform(e)}}
+             onClick={(e)=>{handleData(e)}}
               className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               type="submit"
             >
-              Login
+              Sign up
             </button>
           </div>
         </form>
