@@ -1,0 +1,367 @@
+Firestore is a NoSQL cloud database from Firebase that allows you to store and sync data for client- and server-side development. It is part of the Firebase suite of tools for building mobile and web applications.
+
+### Key Concepts in Firestore
+
+1. **Firestore Database Structure**:
+   - **Documents**: The basic unit of storage in Firestore, which contains data in the form of key-value pairs. Each document is a lightweight record that can store various data types, such as strings, numbers, arrays, and even nested objects.
+
+
+    {
+        "data":{
+            "name": "ishimwe",
+            "type": "admin"
+        }
+    }
+
+
+   - **Collections**: A collection is a group of documents. Each document can also have subcollections, creating a hierarchical data structure. Collections and documents are created implicitly in Firestore, meaning they do not need to be explicitly created before use.
+
+### Firestore CRUD Operations
+
+1. **Add a Document (`addDoc`)**:
+   - To add a document to a collection in Firestore, you use the `addDoc` function from the Firestore SDK. This function allows you to specify the collection you want to add the document to and provide the data for the new document.
+   - Firestore automatically generates a unique ID for the new document.
+
+   ```javascript
+   import { collection, addDoc } from "firebase/firestore";
+   import { db } from "./firebase"; // Import your Firestore instance
+
+   const addTodo = async (title, description) => {
+     try {
+       const docRef = await addDoc(collection(db, "todos"), {
+         title,
+         description,
+         createdAt: new Date(), // Adding a timestamp
+       });
+       console.log("Document written with ID: ", docRef.id);
+     } catch (e) {
+       console.error("Error adding document: ", e);
+     }
+   };
+   ```
+
+2. **Get Documents (`getDocs`)**:
+   - To retrieve documents from a collection, you use the `getDocs` function. This function retrieves all documents in the specified collection.
+   - The result is a `QuerySnapshot` object, which contains an array of `QueryDocumentSnapshot` objects. Each `QueryDocumentSnapshot` represents a single document in the collection and provides methods to access its data.
+
+   ```javascript
+   import { collection, getDocs } from "firebase/firestore";
+   import { db } from "./firebase"; // Import your Firestore instance
+
+   const getTodos = async () => {
+     const querySnapshot = await getDocs(collection(db, "todos"));
+     const todos = [];
+     querySnapshot.forEach((doc) => {
+       todos.push({ id: doc.id, ...doc.data() });
+     });
+     return todos;
+   };
+   ```
+
+### Example: Todo Application
+
+In a Todo application, you might use these functions to add new todo items to a collection called `todos` and to fetch all existing todo items from that collection.
+
+#### Adding a Todo Item
+
+When you call `addDoc`, Firestore creates a new document in the `todos` collection with the specified data:
+
+```javascript
+const handleAddTodo = async (title, description) => {
+  await addTodo(title, description);
+};
+```
+
+#### Retrieving Todo Items
+
+When you call `getDocs`, Firestore retrieves all documents from the `todos` collection, and you can then display these items in your application:
+
+```javascript
+useEffect(() => {
+  const fetchTodos = async () => {
+    const todos = await getTodos();
+    setTodos(todos);
+  };
+  fetchTodos();
+}, []);
+```
+
+### Summary
+
+- **Firestore**: A flexible, scalable NoSQL cloud database for client- and server-side development.
+- **Documents**: The basic unit of storage in Firestore, containing key-value pairs.
+- **Collections**: Groups of documents, forming the hierarchical structure of the database.
+- **addDoc**: Function to add a new document to a specified collection, automatically generating a unique ID.
+- **getDocs**: Function to retrieve all documents from a specified collection.
+
+
+Sure, let's dive into the `getDoc` and `deleteDoc` functions in Firestore.
+
+### Retrieving a Single Document (`getDoc`)
+
+The `getDoc` function retrieves a single document from a Firestore collection. To use it, you need a reference to the specific document you want to retrieve.
+
+#### Example
+
+1. **Import Dependencies**:
+   ```javascript
+   import { doc, getDoc } from "firebase/firestore";
+   import { db } from "./firebase"; // Import your Firestore instance
+   ```
+
+2. **Get a Document**:
+   ```javascript
+   const getTodo = async (id) => {
+     const docRef = doc(db, "todos", id);
+     const docSnap = await getDoc(docRef);
+
+     if (docSnap.exists()) {
+       return { id: docSnap.id, ...docSnap.data() };
+     } else {
+       console.log("No such document!");
+       return null;
+     }
+   };
+   ```
+
+### Deleting a Document (`deleteDoc`)
+
+The `deleteDoc` function deletes a single document from a Firestore collection. To use it, you need a reference to the specific document you want to delete.
+
+#### Example
+
+1. **Import Dependencies**:
+   ```javascript
+   import { doc, deleteDoc } from "firebase/firestore";
+   import { db } from "./firebase"; // Import your Firestore instance
+   ```
+
+2. **Delete a Document**:
+   ```javascript
+   const deleteTodo = async (id) => {
+     const docRef = doc(db, "todos", id);
+     await deleteDoc(docRef);
+     console.log("Document deleted with ID: ", id);
+   };
+   ```
+
+### Integrating into React
+
+To integrate `getDoc` and `deleteDoc` into your React component, you can create functions that call these Firestore methods and handle the results appropriately.
+
+#### Updated `App.js`
+
+```javascript
+import { useEffect, useState } from "react";
+import addTodo from "./addTodo";
+import getTodos from "./getTodos";
+import getTodo from "./getTodo";
+import deleteTodo from "./deleteTodo";
+
+const Todo = () => {
+  const [todos, setTodos] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+
+  useEffect(() => {
+    const fetchTodos = async () => {
+      const todos = await getTodos();
+      setTodos(todos);
+    };
+    fetchTodos();
+  }, []);
+
+  const handleAddTodo = async () => {
+    await addTodo(title, description);
+    const todos = await getTodos();
+    setTodos(todos);
+    setTitle("");
+    setDescription("");
+  };
+
+  const handleDeleteTodo = async (id) => {
+    await deleteTodo(id);
+    const todos = await getTodos();
+    setTodos(todos);
+  };
+
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">Todo List</h1>
+      <div className="mb-4">
+        <input
+          type="text"
+          className="border p-2 rounded mb-2 w-full"
+          placeholder="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <input
+          type="text"
+          className="border p-2 rounded mb-2 w-full"
+          placeholder="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+        <button
+          className="bg-blue-500 text-white p-2 rounded"
+          onClick={handleAddTodo}
+        >
+          Add Todo
+        </button>
+      </div>
+      <ul>
+        {todos.map((todo) => (
+          <li key={todo.id} className="border p-4 rounded mb-2 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">{todo.title}</h2>
+              <p className="text-gray-700">{todo.description}</p>
+            </div>
+            <button
+              className="bg-red-500 text-white p-2 rounded"
+              onClick={() => handleDeleteTodo(todo.id)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default Todo;
+```
+
+### Summary
+
+- **getDoc**: Fetches a single document from a Firestore collection by its ID.
+- **deleteDoc**: Deletes a single document from a Firestore collection by its ID.
+
+These methods allow you to manage individual documents within your Firestore collections, making it easy to retrieve specific records and remove them as needed. By integrating these methods into your React components, you can build a dynamic and interactive application.
+
+
+
+
+
+The Context API in React is a powerful feature that allows you to share state and other data across components without having to pass props down manually at every level. This is especially useful in larger applications where passing props down through many layers of components (known as "prop drilling") can become cumbersome.
+
+### **Key Concepts of Context API**
+
+1. **Context Creation**:
+   - You create a context using `React.createContext()`. This function returns an object with two components: a `Provider` and a `Consumer`.
+
+2. **Provider**:
+   - The `Provider` component is used to wrap the part of your application where you want to make the context available. It accepts a `value` prop, which holds the data you want to share.
+
+3. **Consumer**:
+   - The `Consumer` component is used to access the context. It uses the render prop pattern to give access to the context's value.
+
+4. **useContext Hook**:
+   - In modern React, instead of using the `Consumer` component, you can use the `useContext` hook to access the context value directly.
+
+### **Basic Example of Context API**
+
+#### 1. **Creating a Context**
+
+Let's start by creating a context. This context will hold a simple piece of state, like a theme (light or dark).
+
+```javascript
+import React, { createContext } from 'react';
+
+// Create a context with a default value (optional)
+export const ThemeContext = createContext('light');
+```
+
+#### 2. **Creating a Provider**
+
+Now, we create a `ThemeProvider` component that will manage the theme state and provide it to any components that need it.
+
+```javascript
+import React, { useState } from 'react';
+import { ThemeContext } from './ThemeContext';
+
+export const ThemeProvider = ({ children }) => {
+  const [theme, setTheme] = useState('light');
+
+  const toggleTheme = () => {
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  return (
+    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+```
+
+#### 3. **Using the Context in Components**
+
+To use the context in your components, you can use the `useContext` hook.
+
+```javascript
+import React, { useContext } from 'react';
+import { ThemeContext } from './ThemeContext';
+
+const ThemedButton = () => {
+  const { theme, toggleTheme } = useContext(ThemeContext);
+
+  return (
+    <button
+      style={{
+        backgroundColor: theme === 'light' ? '#fff' : '#333',
+        color: theme === 'light' ? '#000' : '#fff',
+      }}
+      onClick={toggleTheme}
+    >
+      Toggle Theme
+    </button>
+  );
+};
+```
+
+#### 4. **Wrapping Your App with the Provider**
+
+Finally, you need to wrap your application (or the part of your app where you want the context to be available) with the `ThemeProvider`.
+
+```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+import { ThemeProvider } from './ThemeProvider';
+import ThemedButton from './ThemedButton';
+
+const App = () => {
+  return (
+    <ThemeProvider>
+      <div>
+        <h1>Hello, World!</h1>
+        <ThemedButton />
+      </div>
+    </ThemeProvider>
+  );
+};
+
+ReactDOM.render(<App />, document.getElementById('root'));
+```
+
+### **Context API Use Cases**
+
+- **Theme Management**: As shown in the example, Context API is commonly used to manage themes (dark mode, light mode).
+- **User Authentication**: You can store the current user's authentication state and provide access to it across the application.
+- **Language/Localization**: Manage the current language settings and provide translations to components.
+- **Global State Management**: For smaller applications, Context API can serve as a simpler alternative to state management libraries like Redux.
+
+### **Best Practices with Context API**
+
+1. **Avoid Overuse**: While Context API is powerful, overusing it can lead to performance issues because every time the context value changes, all components that consume that context will re-render.
+2. **Modularize Contexts**: Instead of having one large context, split them into smaller contexts for different purposes (e.g., theme context, auth context).
+3. **Combine with Reducers**: For more complex state logic, you can combine Context API with the `useReducer` hook.
+
+The Context API is a great way to manage state in React, especially in scenarios where you need to share state across multiple components without relying on complex prop passing.
+
+4 compo 
+
+1 compo 
+2.compo
+3.compo

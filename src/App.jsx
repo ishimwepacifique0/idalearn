@@ -8,6 +8,7 @@ import Login from './components/authentication/login'
 import SignUp from './components/authentication/signup'
 import Detailmovie from './components/moviesDetail/detailmovie'
 import AppRoutes from './routes/appRoutes'
+import ModaContext from '../context/modalContext'
 
 
 
@@ -15,9 +16,9 @@ import AppRoutes from './routes/appRoutes'
 function App() {
 
   return (
-
-
-    <AppRoutes />
+    <ModaContext>
+      <AppRoutes />
+    </ModaContext>
   )
 }
 
